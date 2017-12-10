@@ -12,11 +12,13 @@ bruttoCountingThread::bruttoCountingThread(QString dataDirPath)
 
 void bruttoCountingThread::run()
 {
-  getColumnsNamesInOrder();
+  qDebug() << "Columns in order size: " << getColumnsNamesInOrder();
 
-  qDebug() << getGivenTrainsKilometersData();
+  qDebug() << "Given trains data rows: " << getGivenTrainsKilometersData();
 
-  // Parse trains data
+  qDebug() << "Trains data rows: " << getTrainsData();
+
+
 
 }
 
@@ -71,6 +73,35 @@ int bruttoCountingThread::getGivenTrainsKilometersData()
 
 int bruttoCountingThread::getTrainsData()
 {
+  QFile trainsFile(dataDirPath + "/trains.csv");
 
+  if(!trainsFile.open(QIODevice::ReadOnly))
+  {
+    qDebug() << "Data file cannot be open for reading.";
+    return -1;
+  }
+
+  QTextStream textStream(&trainsFile);
+
+  // First line contains headers, it should be omitted
+  textStream.readLine();
+
+  QStringList trainData;
+
+  trains.clear();
+
+  while(true)
+  {
+    if(textStream.atEnd()) return trains.size();
+
+    trains.append(std::unordered_map<std::string, std::string>());
+
+    QString line = textStream.readLine();
+
+    trainData = line.split(",");
+
+    for(int i = 0; i < columnsNamesInOrder.size(); ++i)
+      trains.last()[columnsNamesInOrder.at(i).toStdString()] = trainData.at(i).toStdString();
+  }
 }
 
