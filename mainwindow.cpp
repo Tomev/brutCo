@@ -1,8 +1,11 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "QDebug"
-#include "QFileDialog"
+#include <memory>
+
+#include <QDebug>
+#include <QFileDialog>
+#include <QFileInfo>
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
@@ -20,15 +23,15 @@ void MainWindow::on_actionSelect_data_folder_triggered()
 {
   QString dirPath = getDataDirPath();
 
-  if(dirPath == "") dataDirPath = dirPath;
+  if(containsNecessaryFiles(dirPath)) dataDirPath = dirPath;
 }
 
 QString MainWindow::getDataDirPath()
 {
-  QString baseDir = "C:/",
+  QString baseDir = "C:/test",
           dataDirPath;
 
-  // Get dir path of KBs folder
+  // Get dir path to folder with data
   dataDirPath = QFileDialog::getExistingDirectory
               (
                   this,
@@ -38,6 +41,29 @@ QString MainWindow::getDataDirPath()
               );
 
   return dataDirPath;
+}
+
+bool MainWindow::containsNecessaryFiles(QString dirPath)
+{
+  QStringList necessaryFilesNames = {"trains.csv", "data.csv"};
+
+  std::unique_ptr<QFileInfo> fileToCheck;
+
+  QString filePath;
+
+  for(QString fileName : necessaryFilesNames)
+  {
+    filePath = dirPath + "/" + fileName;
+    fileToCheck.reset(new QFileInfo(filePath));
+
+    if(!fileToCheck->isFile())
+    {
+      qDebug() << "Folder does not contain " + fileName + ".";
+      return false;
+    }
+  }
+
+  return true;
 }
 
 void MainWindow::on_actionExit_triggered()

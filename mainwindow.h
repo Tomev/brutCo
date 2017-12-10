@@ -29,6 +29,7 @@ class MainWindow : public QMainWindow
     QString dataDirPath;
 
     QString getDataDirPath();
+    bool containsNecessaryFiles(QString dirPath);
 };
 
 #endif // MAINWINDOW_H
