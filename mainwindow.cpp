@@ -75,7 +75,8 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_pushButton_count_clicked()
 {
-  std::unique_ptr<bruttoCountingThread> bct(new bruttoCountingThread());
+  std::unique_ptr<bruttoCountingThread>
+      bct(new bruttoCountingThread(dataDirPath));
 
   bct->run();
 }
