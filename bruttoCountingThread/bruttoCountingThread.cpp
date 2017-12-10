@@ -18,7 +18,8 @@ void bruttoCountingThread::run()
 
   qDebug() << "Trains data rows: " << getTrainsData();
 
-
+  qDebug() << "Updateds columns in order size: "
+           << addAdditionalColumnsToTrainData();
 
 }
 
@@ -103,5 +104,26 @@ int bruttoCountingThread::getTrainsData()
     for(int i = 0; i < columnsNamesInOrder.size(); ++i)
       trains.last()[columnsNamesInOrder.at(i).toStdString()] = trainData.at(i).toStdString();
   }
+}
+
+int bruttoCountingThread::addAdditionalColumnsToTrainData()
+{
+  QStringList additionalColumnsNames =
+  {
+    "km ROJ", "km RPJ", "km pozostałe", "km ogółem", "brtkm ROJ", "brtkm RPJ",
+    "brtkm pozostałe", "brtkm ogółem"
+  };
+
+  // Insert after column km ogółem
+  int newColumnsShift = columnsNamesInOrder.indexOf("Km ogółem") + 1;
+
+  // Add from the back, so shift doesnt change
+  while(additionalColumnsNames.size() > 0)
+  {
+    columnsNamesInOrder.insert(newColumnsShift, additionalColumnsNames.last());
+    additionalColumnsNames.pop_back();
+  }
+
+  return columnsNamesInOrder.size();
 }
 

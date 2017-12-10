@@ -26,6 +26,7 @@ class bruttoCountingThread : public QThread
     int getColumnsNamesInOrder();
     int getGivenTrainsKilometersData();
     int getTrainsData();
+    int addAdditionalColumnsToTrainData();
 };
 
 #endif // BRUTTOCOUNTINGTHREAD_H
