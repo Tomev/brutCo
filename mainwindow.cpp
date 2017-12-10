@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "./bruttoCountingThread/bruttoCountingThread.h"
+
 #include <memory>
 
 #include <QDebug>
@@ -73,5 +75,7 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::on_pushButton_count_clicked()
 {
+  std::unique_ptr<bruttoCountingThread> bct(new bruttoCountingThread());
 
+  bct->run();
 }

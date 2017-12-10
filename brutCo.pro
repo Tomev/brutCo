@@ -24,8 +24,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    bruttoCountingThread/bruttoCountingThread.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    bruttoCountingThread/bruttoCountingThread.h
 
 FORMS    += mainwindow.ui
