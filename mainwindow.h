@@ -18,8 +18,17 @@ class MainWindow : public QMainWindow
   private slots:
     void on_actionExit_triggered();
 
+    void on_pushButton_count_clicked();
+
+    void on_actionSelect_data_folder_triggered();
+
   private:
     Ui::MainWindow *ui;
+
+  protected:
+    QString dataDirPath;
+
+    QString getDataDirPath();
 };
 
 #endif // MAINWINDOW_H
