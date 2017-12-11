@@ -21,6 +21,8 @@ void bruttoCountingThread::run()
   qDebug() << "Updateds columns in order size: "
            << addAdditionalColumnsToTrainData();
 
+  qDebug() << "Updated trains number: " << updateGivenTrainsData();
+
 }
 
 int bruttoCountingThread::getColumnsNamesInOrder()
@@ -110,7 +112,7 @@ int bruttoCountingThread::addAdditionalColumnsToTrainData()
 {
   QStringList additionalColumnsNames =
   {
-    "km ROJ", "km RPJ", "km pozostałe", "km ogółem", "brtkm ROJ", "brtkm RPJ",
+    "km ROJ", "km RPJ", "km pozostałe", "km ogółem r", "brtkm ROJ", "brtkm RPJ",
     "brtkm pozostałe", "brtkm ogółem"
   };
 
@@ -125,5 +127,78 @@ int bruttoCountingThread::addAdditionalColumnsToTrainData()
   }
 
   return columnsNamesInOrder.size();
+}
+
+int bruttoCountingThread::updateGivenTrainsData()
+{
+  int updatedTrainsNumber = 0;
+
+  QStringList givenTrainsList = getGivenTrainsNames();
+
+  for(std::unordered_map<std::string, std::string> train: trains)
+  {
+    if(givenTrainsList.contains(QString::fromStdString(train["Nr pociągu"])))
+    {
+      updateTrainData(&train);
+      ++updatedTrainsNumber;
+    }
+  }
+
+
+  return updatedTrainsNumber;
+}
+
+QStringList bruttoCountingThread::getGivenTrainsNames()
+{
+  QStringList givenTrainsList;
+
+  for(std::unordered_map<std::string, std::string> train: givenData)
+    givenTrainsList.append(QString::fromStdString(train["Nr pociągu"]));
+
+  return givenTrainsList;
+}
+
+int bruttoCountingThread::updateTrainData(std::unordered_map<std::__cxx11::string, std::__cxx11::string> *train)
+{
+  std::unordered_map<std::__cxx11::string, std::__cxx11::string>
+      trainsGivenData;
+
+  // Find given data for train
+  for(std::unordered_map<std::__cxx11::string, std::__cxx11::string> data : givenData)
+  {
+    if(data["Nr pociągu"] == (*train)["Nr pociągu"])
+    {
+      trainsGivenData = data;
+      break;
+    }
+  }
+
+  (*train)["km ROJ"] = (trainsGivenData)["km ROJ"];
+  (*train)["km RPJ"] = (trainsGivenData)["km RPJ"];
+  (*train)["km pozostałe"] = "0";
+
+  double km = std::stod((*train)["km ROJ"]) + std::stod((*train)["km RPJ"]);
+
+  (*train)["km ogółem r"] = std::to_string(km);
+
+  if(std::stod((*train)["km ogółem r"]) - std::stod((*train)["Km ogółem"]) < 0.0001)
+    countBruttos(train);
+
+  return 0;
+}
+
+int bruttoCountingThread::countBruttos(std::unordered_map<std::__cxx11::string, std::__cxx11::string> *train)
+{
+  double  bruttoRzecz = std::stod((*train)["Brutto Rzecz"]),
+          kmROJ       = std::stod((*train)["km ROJ"]),
+          kmRPJ       = std::stod((*train)["km RPJ"]),
+          kmTotal     = std::stod((*train)["Km ogółem"]);
+
+  (*train)["brtkm ROJ"] = std::to_string(bruttoRzecz * kmROJ);
+  (*train)["brtkm RPJ"] = std::to_string(bruttoRzecz * kmRPJ);
+  (*train)["brtkm pozostałe"] = "0";
+  (*train)["brtkm ogółem"] = std::to_string(bruttoRzecz * kmTotal);
+
+  return 0;
 }
 
