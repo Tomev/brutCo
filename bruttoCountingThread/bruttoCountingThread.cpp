@@ -18,11 +18,12 @@ void bruttoCountingThread::run()
 
   qDebug() << "Trains data rows: " << getTrainsData();
 
-  qDebug() << "Updateds columns in order size: "
+  qDebug() << "Updated columns in order size: "
            << addAdditionalColumnsToTrainData();
 
   qDebug() << "Updated trains number: " << updateGivenTrainsData();
 
+  qDebug() << "Resultant csv created. Lines " << generateResultantCSV();;
 }
 
 int bruttoCountingThread::getColumnsNamesInOrder()
@@ -41,7 +42,9 @@ int bruttoCountingThread::getColumnsNamesInOrder()
 
   QString line = textStream.readLine();
 
-  columnsNamesInOrder = line.split(",");
+  columnsNamesInOrder = line.split("|");
+
+  trainsFile.close();
 
   return columnsNamesInOrder.size();
 }
@@ -71,6 +74,8 @@ int bruttoCountingThread::getGivenTrainsKilometersData()
       givenData.last()[dataHeadersInOrder.at(i).toStdString()] = givenDatum.at(i).toStdString();
   }
 
+  dataFile.close();
+
   return givenData.size();
 }
 
@@ -93,19 +98,31 @@ int bruttoCountingThread::getTrainsData()
 
   trains.clear();
 
+  //int j = 0;
+
   while(true)
   {
-    if(textStream.atEnd()) return trains.size();
+    if(textStream.atEnd())
+    {
+      trainsFile.close();
+      return trains.size();
+    }
 
     trains.append(std::unordered_map<std::string, std::string>());
 
     QString line = textStream.readLine();
 
-    trainData = line.split(",");
+    trainData = line.split("|");
+
+    //qDebug() << ++j;
 
     for(int i = 0; i < columnsNamesInOrder.size(); ++i)
       trains.last()[columnsNamesInOrder.at(i).toStdString()] = trainData.at(i).toStdString();
   }
+
+  trainsFile.close();
+
+  return -1;
 }
 
 int bruttoCountingThread::addAdditionalColumnsToTrainData()
@@ -117,7 +134,7 @@ int bruttoCountingThread::addAdditionalColumnsToTrainData()
   };
 
   // Insert after column km ogółem
-  int newColumnsShift = columnsNamesInOrder.indexOf("Km ogółem") + 1;
+  int newColumnsShift = columnsNamesInOrder.indexOf("'Km ogółem'") + 1;
 
   // Add from the back, so shift doesnt change
   while(additionalColumnsNames.size() > 0)
@@ -137,10 +154,11 @@ int bruttoCountingThread::updateGivenTrainsData()
 
   for(std::unordered_map<std::string, std::string> train: trains)
   {
-    if(givenTrainsList.contains(QString::fromStdString(train["Nr pociągu"])))
+    if(givenTrainsList.contains(QString::fromStdString(train["'Nr pociągu'"])))
     {
       updateTrainData(&train);
       ++updatedTrainsNumber;
+      
     }
   }
 
@@ -166,7 +184,7 @@ int bruttoCountingThread::updateTrainData(std::unordered_map<std::__cxx11::strin
   // Find given data for train
   for(std::unordered_map<std::__cxx11::string, std::__cxx11::string> data : givenData)
   {
-    if(data["Nr pociągu"] == (*train)["Nr pociągu"])
+    if(data["Nr pociągu"] == (*train)["'Nr pociągu'"])
     {
       trainsGivenData = data;
       break;
@@ -181,7 +199,7 @@ int bruttoCountingThread::updateTrainData(std::unordered_map<std::__cxx11::strin
 
   (*train)["km ogółem r"] = std::to_string(km);
 
-  if(std::stod((*train)["km ogółem r"]) - std::stod((*train)["Km ogółem"]) < 0.0001)
+  if(std::stod((*train)["km ogółem r"]) - std::stod((*train)["'Km ogółem'"]) < 0.0001)
     countBruttos(train);
 
   return 0;
@@ -189,10 +207,15 @@ int bruttoCountingThread::updateTrainData(std::unordered_map<std::__cxx11::strin
 
 int bruttoCountingThread::countBruttos(std::unordered_map<std::__cxx11::string, std::__cxx11::string> *train)
 {
-  double  bruttoRzecz = std::stod((*train)["Brutto Rzecz"]),
+  if((*train)["'Nr pociągu'"] == "40500")
+  {
+    qDebug() << "40500";
+  }
+
+  double  bruttoRzecz = std::stod((*train)["'Brutto Rzecz'"]),
           kmROJ       = std::stod((*train)["km ROJ"]),
           kmRPJ       = std::stod((*train)["km RPJ"]),
-          kmTotal     = std::stod((*train)["Km ogółem"]);
+          kmTotal     = std::stod((*train)["'Km ogółem'"]);
 
   (*train)["brtkm ROJ"] = std::to_string(bruttoRzecz * kmROJ);
   (*train)["brtkm RPJ"] = std::to_string(bruttoRzecz * kmRPJ);
@@ -200,5 +223,62 @@ int bruttoCountingThread::countBruttos(std::unordered_map<std::__cxx11::string, 
   (*train)["brtkm ogółem"] = std::to_string(bruttoRzecz * kmTotal);
 
   return 0;
+}
+
+int bruttoCountingThread::generateResultantCSV()
+{
+  QFile result(dataDirPath + "/result.csv");
+
+  if(!result.open(QIODevice::WriteOnly))
+  {
+    qDebug() << "Couldn't open file for writing.";
+    return -1;
+  }
+
+  int linesNumber = 0;
+  QString line = generateHeaderLine();
+  QTextStream textStream(&result);
+
+  textStream << line << "\n";
+
+  for(std::unordered_map<std::__cxx11::string, std::__cxx11::string> train: trains)
+  {
+    line = generateLineFromTrain(&train);
+    textStream << line << "\n";
+    ++linesNumber;
+  }
+
+  return linesNumber;
+}
+
+QString bruttoCountingThread::generateHeaderLine()
+{
+  QString result = "";
+
+  for(QString column: columnsNamesInOrder)
+    result += column + ",";
+
+  result.remove(result.length()-1, 1);
+
+  return result;
+}
+
+QString bruttoCountingThread::generateLineFromTrain(std::unordered_map<std::__cxx11::string, std::__cxx11::string> *train)
+{
+  if((*train)["'Nr pociągu'"] == "40500")
+  {
+    qDebug() << "40500";
+  }
+
+  QString line = "";
+
+  for(QString header: columnsNamesInOrder)
+  {
+    line += QString::fromStdString((*train)[header.toStdString()]) + ",";
+  }
+
+  line.remove(line.length()-1, 1);
+
+  return line;
 }
 

@@ -78,5 +78,8 @@ void MainWindow::on_pushButton_count_clicked()
   std::unique_ptr<bruttoCountingThread>
       bct(new bruttoCountingThread(dataDirPath));
 
+  if(dataDirPath == "")
+    bct.reset(new bruttoCountingThread("C:/test"));
+
   bct->run();
 }

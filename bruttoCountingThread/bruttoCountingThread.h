@@ -31,6 +31,10 @@ class bruttoCountingThread : public QThread
       QStringList getGivenTrainsNames();
       int updateTrainData(std::unordered_map<std::string, std::string> *train);
         int countBruttos(std::unordered_map<std::string, std::string> *train);
+    int generateResultantCSV();
+      QString generateHeaderLine();
+      QString generateLineFromTrain(std::unordered_map<std::string, std::string> *train);
+
 };
 
 #endif // BRUTTOCOUNTINGTHREAD_H
