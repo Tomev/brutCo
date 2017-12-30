@@ -30,7 +30,7 @@ void MainWindow::on_actionSelect_data_folder_triggered()
 
 QString MainWindow::getDataDirPath()
 {
-  QString baseDir = "C:/test",
+  QString baseDir = "D:/Dysk Google/test",
           dataDirPath;
 
   // Get dir path to folder with data
@@ -79,7 +79,7 @@ void MainWindow::on_pushButton_count_clicked()
       bct(new bruttoCountingThread(dataDirPath));
 
   if(dataDirPath == "")
-    bct.reset(new bruttoCountingThread("C:/test"));
+    bct.reset(new bruttoCountingThread("D:/Dysk Google/test"));
 
   bct->run();
 }

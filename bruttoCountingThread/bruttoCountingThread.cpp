@@ -152,13 +152,12 @@ int bruttoCountingThread::updateGivenTrainsData()
 
   QStringList givenTrainsList = getGivenTrainsNames();
 
-  for(std::unordered_map<std::string, std::string> train: trains)
+  for(int i = 0; i < trains.size(); ++i)
   {
-    if(givenTrainsList.contains(QString::fromStdString(train["'Nr pociągu'"])))
+    if(givenTrainsList.contains(QString::fromStdString(trains[i]["'Nr pociągu'"])))
     {
-      updateTrainData(&train);
-      ++updatedTrainsNumber;
-      
+      updateTrainData(&(trains[i]));
+      ++updatedTrainsNumber;     
     }
   }
 
@@ -191,6 +190,7 @@ int bruttoCountingThread::updateTrainData(std::unordered_map<std::__cxx11::strin
     }
   }
 
+  //train->insert("km ROJ", trainsGivenData["km ROJ"]);
   (*train)["km ROJ"] = (trainsGivenData)["km ROJ"];
   (*train)["km RPJ"] = (trainsGivenData)["km RPJ"];
   (*train)["km pozostałe"] = "0";
@@ -207,10 +207,6 @@ int bruttoCountingThread::updateTrainData(std::unordered_map<std::__cxx11::strin
 
 int bruttoCountingThread::countBruttos(std::unordered_map<std::__cxx11::string, std::__cxx11::string> *train)
 {
-  if((*train)["'Nr pociągu'"] == "40500")
-  {
-    qDebug() << "40500";
-  }
 
   double  bruttoRzecz = std::stod((*train)["'Brutto Rzecz'"]),
           kmROJ       = std::stod((*train)["km ROJ"]),
@@ -256,7 +252,7 @@ QString bruttoCountingThread::generateHeaderLine()
   QString result = "";
 
   for(QString column: columnsNamesInOrder)
-    result += column + ",";
+    result += column + "|";
 
   result.remove(result.length()-1, 1);
 
@@ -265,20 +261,20 @@ QString bruttoCountingThread::generateHeaderLine()
 
 QString bruttoCountingThread::generateLineFromTrain(std::unordered_map<std::__cxx11::string, std::__cxx11::string> *train)
 {
-  if((*train)["'Nr pociągu'"] == "40500")
-  {
-    qDebug() << "40500";
-  }
-
   QString line = "";
 
   for(QString header: columnsNamesInOrder)
   {
-    line += QString::fromStdString((*train)[header.toStdString()]) + ",";
+    line += QString::fromStdString((*train)[header.toStdString()]) + "|";
   }
 
   line.remove(line.length()-1, 1);
 
   return line;
+}
+
+void bruttoCountingThread::trainsUpdate(std::unordered_map<std::__cxx11::string, std::__cxx11::string> *train)
+{
+  (*train)["dupa"] = "biskupa";
 }
 
